@@ -1,5 +1,8 @@
 package com.example.tenantmanagementsystem
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -24,8 +27,25 @@ class ViewTenantsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Hide "Just added" by default until Practical 3 passes data
-        binding.newTenantGroup.visibility = View.GONE
+        @Suppress("DEPRECATION")
+        val newTenant = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arguments?.getSerializable("newTenant", Tenant::class.java)
+        } else {
+            arguments?.getSerializable("newTenant") as? Tenant
+        }
+
+        binding.tenant = newTenant
+
+        if (newTenant == null) {
+            binding.newTenantGroup.visibility = View.GONE
+        }
+
+        binding.callButton.setOnClickListener {
+            if (newTenant != null) {
+                val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${newTenant.phone}"))
+                startActivity(intent)
+            }
+        }
 
         val tenants = TenantRepository.tenants
         if (tenants.isEmpty()) {
